@@ -14,9 +14,10 @@ import com.example.photo_quest.ui.screens.auth.SignUpScreen
 
 @Composable
 fun NavigationRoot(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    startingDestination: Route = Route.Home
 ) {
-    val backStack = rememberNavBackStack(Route.Home)
+    val backStack = rememberNavBackStack(startingDestination)
 
     NavDisplay(
         modifier = modifier,
@@ -42,7 +43,9 @@ fun NavigationRoot(
 
                 is Route.LogIn -> {
                     NavEntry(key) {
-                        LogInScreen()
+                        LogInScreen(
+                            goToHome = { backStack.add(Route.Home) }
+                        )
                     }
                 }
 

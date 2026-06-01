@@ -19,11 +19,8 @@ fun HomeScreen(
 
     val text by viewModel.text.collectAsStateWithLifecycle()
 
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    Text(
+        text = text,
+    )
 
-        Text(
-            text = text,
-            modifier = Modifier.padding(innerPadding)
-        )
-    }
 }

@@ -64,5 +64,5 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
 
     implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.ui.auth)
+    implementation(libs.firebase.auth)
 }
