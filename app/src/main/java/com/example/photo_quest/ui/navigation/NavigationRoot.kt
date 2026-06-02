@@ -9,7 +9,6 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.example.photo_quest.ui.screens.HomeScreen
 import com.example.photo_quest.ui.screens.auth.LogInScreen
-import com.example.photo_quest.ui.screens.auth.SignUpScreen
 
 
 @Composable
@@ -35,17 +34,19 @@ fun NavigationRoot(
                     }
                 }
 
-                is Route.SignUp -> {
-                    NavEntry(key) {
-                        SignUpScreen()
-                    }
-                }
+//                is Route.SignUp -> {
+//                    NavEntry(key) {
+//                        SignUpScreen(
+//                            goToLogIn = { backStack.add(Route.LogIn) }
+//                        )
+//                    }
+//                }
 
                 is Route.LogIn -> {
                     NavEntry(key) {
                         LogInScreen(
                             goToHome = { backStack.add(Route.Home) },
-                            goToSignUp = { backStack.add(Route.SignUp) }
+//                            goToSignUp = { backStack.add(Route.SignUp) }
                         )
                     }
                 }

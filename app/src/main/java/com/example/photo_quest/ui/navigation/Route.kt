@@ -12,8 +12,8 @@ sealed interface Route : NavKey {
     @Serializable
     data object LogIn : Route, NavKey
 
-    @Serializable
-    data object SignUp : Route, NavKey
+//    @Serializable
+//    data object SignUp : Route, NavKey
 
 
     // data object for routes that take no parameter

@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -22,7 +23,6 @@ import com.example.photo_quest.ui.viewmodels.auth.LogInScreenViewModel
 fun LogInScreen(
     modifier: Modifier = Modifier,
     goToHome: () -> Unit,
-    goToSignUp: () -> Unit,
     viewModel: LogInScreenViewModel = viewModel()
 ) {
 
@@ -32,7 +32,7 @@ fun LogInScreen(
         modifier = modifier
             .padding(32.dp)
             .fillMaxSize()
-    ){
+    ) {
 
         Text(
             text = "Photo Quest",
@@ -42,61 +42,105 @@ fun LogInScreen(
             color = MaterialTheme.colorScheme.primary,
         )
 
-        Column(
-            verticalArrangement = spacedBy(16.dp, Alignment.CenterVertically),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
+        if (viewModel.loading) {
+            CircularProgressIndicator()
+        }
+        else {
+            Column(
+                verticalArrangement = spacedBy(16.dp, Alignment.CenterVertically),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
 //                .padding(32.dp)
-                .fillMaxWidth()
+                    .fillMaxWidth()
 //                .fillMaxHeight(0.5f),
 
-        ) {
-            OutlinedTextField(
-                value = viewModel.emailOrPhone,
-                onValueChange = {
-                    viewModel.emailOrPhone = it
-                },
-                label = { Text("E-mail or Phone") },
-            )
-
-            OutlinedTextField(
-                value = viewModel.password,
-                onValueChange = {
-                    viewModel.password = it
-                },
-                label = { Text("Password") },
-                visualTransformation = if (viewModel.showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    IconButton(
-                        onClick = { viewModel.showPassword = !viewModel.showPassword }
-                    ) {
-                        if (viewModel.showPassword)
-                            Icon(Icons.Default.VisibilityOff, contentDescription = "Hide password")
-                        else
-                            Icon(Icons.Default.Visibility, contentDescription = "Show password")
-                    }
-                }
-            )
-
-        }
-
-        Column(
-            verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            Button(
-                onClick = goToHome,
-                modifier = Modifier.fillMaxWidth(0.7f),
             ) {
-                Text("Log In")
+                OutlinedTextField(
+                    value = viewModel.email,
+                    onValueChange = {
+                        viewModel.email = it
+                    },
+                    label = { Text("E-mail") },
+                )
+
+                OutlinedTextField(
+                    value = viewModel.password,
+                    onValueChange = {
+                        viewModel.password = it
+                    },
+                    label = { Text("Password") },
+                    visualTransformation = if (viewModel.showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(
+                            onClick = { viewModel.showPassword = !viewModel.showPassword }
+                        ) {
+                            if (viewModel.showPassword)
+                                Icon(Icons.Default.VisibilityOff, contentDescription = "Hide password")
+                            else
+                                Icon(Icons.Default.Visibility, contentDescription = "Show password")
+                        }
+                    }
+                )
+
+                if (viewModel.showSignUp)
+                    OutlinedTextField(
+                        value = viewModel.password2,
+                        onValueChange = {
+                            viewModel.password2 = it
+                        },
+                        label = { Text("Repeat password") },
+                        visualTransformation = if (viewModel.showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(
+                                onClick = { viewModel.showPassword = !viewModel.showPassword }
+                            ) {
+                                if (viewModel.showPassword)
+                                    Icon(Icons.Default.VisibilityOff, contentDescription = "Hide password")
+                                else
+                                    Icon(Icons.Default.Visibility, contentDescription = "Show password")
+                            }
+                        }
+                    )
+                else if (viewModel.showResetPassword)
+                    TextButton(
+                        onClick = { viewModel.showSignUp = !viewModel.showSignUp },
+                    ) {
+                        Text("Forgot password?")
+                    }
+                else
+                    Spacer(modifier = Modifier.height(64.dp))
             }
 
-            TextButton(
-                onClick = goToSignUp,
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .fillMaxWidth()
             ) {
-                Text("Don't have an account?")
+                val context = LocalContext.current
+                Button(
+                    onClick = {
+                        viewModel.authenticate(
+                            context = context,
+                            goToHome = goToHome
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(0.7f),
+                ) {
+                    if (viewModel.showSignUp)
+                        Text("Sign Up")
+                    else
+                        Text("Log In")
+                }
+
+                TextButton(
+                    onClick = { viewModel.showSignUp = !viewModel.showSignUp },
+                ) {
+                    if (viewModel.showSignUp)
+                        Text("Already have an account?")
+                    else
+                        Text("Don't have an account?")
+                }
             }
         }
     }
