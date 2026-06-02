@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         auth = Firebase.auth
-        startingScreen.value = if (auth.currentUser == null) Route.LogIn else Route.Home
+//        startingScreen.value = if (auth.currentUser == null) Route.LogIn else Route.Home
 
         enableEdgeToEdge()
         setContent {
