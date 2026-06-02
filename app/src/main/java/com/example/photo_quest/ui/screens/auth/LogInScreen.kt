@@ -1,5 +1,6 @@
 package com.example.photo_quest.ui.screens.auth
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement.Absolute.spacedBy
 import androidx.compose.material.icons.Icons
@@ -16,6 +17,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.photo_quest.ui.viewmodels.auth.LogInScreenViewModel
 
@@ -25,6 +27,39 @@ fun LogInScreen(
     goToHome: () -> Unit,
     viewModel: LogInScreenViewModel = viewModel()
 ) {
+
+    if(viewModel.showResetPasswordDialog)
+        Dialog(
+            onDismissRequest = { viewModel.showResetPasswordDialog = false },
+        ) {
+            Column(
+                verticalArrangement = spacedBy(16.dp, Alignment.CenterVertically),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(4.dp)
+                    .fillMaxSize()
+            ) {
+
+                Text("Enter your e-mail to reset your password")
+
+                OutlinedTextField(
+                    value = viewModel.email,
+                    onValueChange = {
+                        viewModel.email = it
+                    },
+                    label = { Text("E-mail") },
+                    singleLine = true,
+                )
+
+                val context = LocalContext.current
+                Button(
+                    onClick = { viewModel.resetPasswordResetEmail(context = context) }
+                ) {
+                    Text("Send e-mail")
+                }
+            }
+        }
 
     Column(
         verticalArrangement = Arrangement.SpaceAround,
@@ -61,6 +96,7 @@ fun LogInScreen(
                         viewModel.email = it
                     },
                     label = { Text("E-mail") },
+                    singleLine = true,
                 )
 
                 OutlinedTextField(
@@ -79,7 +115,8 @@ fun LogInScreen(
                             else
                                 Icon(Icons.Default.Visibility, contentDescription = "Show password")
                         }
-                    }
+                    },
+                    singleLine = true,
                 )
 
                 if (viewModel.showSignUp)
@@ -99,11 +136,12 @@ fun LogInScreen(
                                 else
                                     Icon(Icons.Default.Visibility, contentDescription = "Show password")
                             }
-                        }
+                        },
+                        singleLine = true,
                     )
                 else if (viewModel.showResetPassword)
                     TextButton(
-                        onClick = { viewModel.showSignUp = !viewModel.showSignUp },
+                        onClick = { viewModel.showResetPasswordDialog = true },
                     ) {
                         Text("Forgot password?")
                     }

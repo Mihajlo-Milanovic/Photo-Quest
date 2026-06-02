@@ -19,6 +19,7 @@ class LogInScreenViewModel : ViewModel() {
     var showSignUp by mutableStateOf(false)
     var loading by mutableStateOf(false)
     var showResetPassword by mutableStateOf(true)
+    var showResetPasswordDialog by mutableStateOf(false)
 
     fun authenticate(context: Context, goToHome: () -> Unit) {
 
@@ -87,8 +88,17 @@ class LogInScreenViewModel : ViewModel() {
         return true
     }
 
-//    fun resetPassword(context: Context) {
-//
-//        Firebase.auth.sendPasswordResetEmail(emailOrPhone)
-//    }
+    fun resetPasswordResetEmail(context: Context) {
+
+        Firebase.auth.useAppLanguage()
+        Firebase.auth.sendPasswordResetEmail(email)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Toast.makeText(context, "Email sent to $email", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "Failed to send email. Check for typos", Toast.LENGTH_SHORT).show()
+                }
+            }
+        showResetPasswordDialog = false
+    }
 }
