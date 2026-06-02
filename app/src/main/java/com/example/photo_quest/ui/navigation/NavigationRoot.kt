@@ -50,17 +50,19 @@ fun NavigationRoot(
                         }
                     }
 
-                is Route.Settings -> {
-                    NavEntry(key) {
-                        SettingsScreen()
+                    is Route.Settings -> {
+                        NavEntry(key) {
+                            SettingsScreen()
+                        }
                     }
-                }
 
                     is Route.LogIn -> {
                         NavEntry(key) {
                             LogInScreen(
-                                goToHome = { backStack.add(Route.Home) },
-//                            goToSignUp = { backStack.add(Route.SignUp) }
+                                goToHome = {
+                                    backStack.remove(Route.LogIn)
+                                    backStack.add(Route.Home)
+                                },
                             )
                         }
                     }

@@ -19,6 +19,10 @@ fun PhotoQuestBottomBar(
     goToHome: () -> Unit,
     goToSettings: () -> Unit,
 ) {
+
+    if (currentScreen == Route.LogIn)
+        return
+
     NavigationBar(
         modifier = modifier
     ) {
