@@ -11,15 +11,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.photo_quest.ui.viewmodels.HomeViewModel
+import com.example.photo_quest.ui.viewmodels.HomeScreenViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    viewModel: HomeViewModel = viewModel(),
+    viewModel: HomeScreenViewModel //= viewModel(),
 ) {
 
     val text by viewModel.text.collectAsStateWithLifecycle()

@@ -4,42 +4,30 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.photo_quest.data.repositories.UserRepository
 import com.example.photo_quest.ui.navigation.NavigationRoot
 import com.example.photo_quest.ui.navigation.Route
 import com.example.photo_quest.ui.theme.PhotoQuestTheme
-import com.google.firebase.Firebase
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
+import com.example.photo_quest.ui.viewmodels.auth.LogInScreenViewModel
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    lateinit var auth: FirebaseAuth
-    val startingScreen = mutableStateOf<Route>(Route.Home)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        auth = Firebase.auth
-//        startingScreen.value = if (auth.currentUser == null) Route.LogIn else Route.Home
 
         enableEdgeToEdge()
         setContent {
             PhotoQuestTheme {
 
-                NavigationRoot(
-                    startingDestination = startingScreen.value,
-                )
-
+                NavigationRoot()
             }
         }
     }
 
-    public override fun onStart() {
-        super.onStart()
-        // Check if user is signed in (non-null) and update UI accordingly.
-        val currentUser = auth.currentUser
-        startingScreen.value = if (auth.currentUser == null) Route.LogIn else Route.Home
-    }
 
 }
