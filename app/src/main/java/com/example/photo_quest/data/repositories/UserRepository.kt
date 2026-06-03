@@ -4,9 +4,12 @@ import android.content.Context
 import android.net.Uri
 import com.example.photo_quest.data.models.User
 import com.example.photo_quest.data.sources.RemoteAuthDataSource
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
-class UserRepository(
+
+class UserRepository @Inject constructor(
     val remoteAuthDataSource: RemoteAuthDataSource
 ) {
 
@@ -28,5 +31,6 @@ class UserRepository(
 
     suspend fun updateUser(user: User) = remoteAuthDataSource.updateUser(user)
     suspend fun changeEmail(email: String) = remoteAuthDataSource.changeEmail(email)
+    fun sendVerificationEmail(context: Context, coroutineScope: CoroutineScope) = remoteAuthDataSource.sendVerificationEmail(context, coroutineScope)
     fun sendPasswordResetEmail(email: String, context: Context) = remoteAuthDataSource.sendPasswordResetEmail(email, context)
 }
