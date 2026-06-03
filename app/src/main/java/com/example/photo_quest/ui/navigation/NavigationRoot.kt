@@ -60,7 +60,11 @@ fun NavigationRoot(
                         NavEntry(key) {
                             val viewModel = hiltViewModel<SettingsScreenViewModel>()
                             SettingsScreen(
-                                viewModel = viewModel
+                                viewModel = viewModel,
+                                goToLogIn = {
+                                    backStack.clear()
+                                    backStack.add(Route.LogIn)
+                                }
                             )
                         }
                     }
