@@ -35,13 +35,17 @@ class LogInScreenViewModel @Inject constructor(
     var showResetPassword by mutableStateOf(false)
     var showResetPasswordDialog by mutableStateOf(false)
     var showResendVerificationEmail by mutableStateOf(false)
+    var showVerifyEmailMessage by mutableStateOf(false)
+    var showPasswordRequirements by mutableStateOf(false)
 
     fun authenticate(context: Context, goToHome: () -> Unit) {
 
         loading = true
 
-        if(user.value != null)
+        if(user.value != null) {
             goToHome()
+            loading = false
+        }
 
         if (email.isEmpty()){
             Toast.makeText(context, "Invalid e-mail address", Toast.LENGTH_SHORT).show()
@@ -58,25 +62,28 @@ class LogInScreenViewModel @Inject constructor(
         if (showSignUp) {
             signUp(context)
         } else {
-            logIn(context, goToHome)
+            logIn(context)
         }
     }
 
     fun signUp(context: Context) {
 
         if (!checkPasswords(context)){
+            loading = false
             return
         }
-        userRepository.signUp(email, password)
-        sendVerificationEmail(context)
+        userRepository.signUp(context, email, password) { sendVerificationEmail(context = context) }
     }
 
-    fun logIn(context: Context, goToHome: () -> Unit) = userRepository.logIn(email, password)
+    fun logIn(context: Context) = userRepository.logIn(context, email, password) {
+        loading = false
+    }
 
 
     fun checkPasswords(context: Context) : Boolean{
         if (!password.matches(Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).+$"))){
-            Toast.makeText(context, "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character", Toast.LENGTH_SHORT).show()
+            showPasswordRequirements = true
+            //Toast.makeText(context, "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character", Toast.LENGTH_SHORT).show()
             return false
         }
         if (password != password2) {

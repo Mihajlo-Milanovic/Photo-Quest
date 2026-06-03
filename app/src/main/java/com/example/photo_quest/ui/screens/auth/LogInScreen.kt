@@ -1,6 +1,5 @@
 package com.example.photo_quest.ui.screens.auth
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement.Absolute.spacedBy
@@ -18,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.*
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -33,14 +33,17 @@ fun LogInScreen(
     val context = LocalContext.current
     val user by viewModel.user.collectAsStateWithLifecycle()
 
-    LaunchedEffect(user) {
+    LaunchedEffect(user, user?.emailVerified) {
 
         user?.let {
-            if (it.emailVerified)
+            if (it.emailVerified) {
                 goToHome()
+                viewModel.loading = false
+            }
             else {
-                Toast.makeText(context, "Verify your e-mail", Toast.LENGTH_SHORT).show()
                 viewModel.email = it.email
+                viewModel.loading = true
+                viewModel.showVerifyEmailMessage = true
                 viewModel.showResendVerificationEmail = true
             }
         }
@@ -96,7 +99,24 @@ fun LogInScreen(
         )
 
         if (viewModel.loading) {
-            CircularProgressIndicator()
+            Column(
+                verticalArrangement = spacedBy(128.dp, Alignment.CenterVertically),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                CircularProgressIndicator()
+
+                if (viewModel.showVerifyEmailMessage) {
+                    Text("Please verify your e-mail")
+
+                    TextButton(
+                        onClick = { viewModel.sendVerificationEmail(context = context) },
+                    ) {
+                        Text("Resend verification e-mail")
+                    }
+                }
+            }
         } else {
             Column(
                 verticalArrangement = spacedBy(16.dp, Alignment.CenterVertically),
@@ -111,14 +131,14 @@ fun LogInScreen(
                     },
                     label = { Text("E-mail") },
                     singleLine = true,
-
                     keyboardOptions = KeyboardOptions(
                         autoCorrectEnabled = true,
                         imeAction = ImeAction.Next,
                         showKeyboardOnFocus = true,
                         capitalization = KeyboardCapitalization.None,
                         keyboardType = KeyboardType.Email,
-                    )
+                    ),
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 OutlinedTextField(
@@ -139,14 +159,14 @@ fun LogInScreen(
                         }
                     },
                     singleLine = true,
-
                     keyboardOptions = KeyboardOptions(
                         autoCorrectEnabled = false,
                         imeAction = if (viewModel.showSignUp) ImeAction.Next else ImeAction.Done,
                         showKeyboardOnFocus = true,
                         capitalization = KeyboardCapitalization.None,
                         keyboardType = KeyboardType.Password,
-                    )
+                    ),
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 if (viewModel.showSignUp) {
@@ -174,18 +194,37 @@ fun LogInScreen(
                             showKeyboardOnFocus = true,
                             capitalization = KeyboardCapitalization.None,
                             keyboardType = KeyboardType.Password,
-                        )
+                        ),
+                        modifier = Modifier.fillMaxWidth()
                     )
 
-                    if (viewModel.showResendVerificationEmail)
-                        TextButton(
-                            onClick = { viewModel.sendVerificationEmail(context = context) },
-                        ) {
-                            Text("Resend verification e-mail")
-                        }
+                    if (viewModel.showPasswordRequirements)
+                        Text(
+                            text = """ 
+                                Password must contain
+                                one uppercase letter    [A-Z],
+                                one lowercase letter    [a-z],
+                                one number              [0-9],
+                                special character       
+                                [e.g. !, @, #, $, %, &, *]
+                            """.trimIndent(),
+                            style = LocalTextStyle.current.copy(
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                fontSize = 12.sp,
+                                fontFamily = FontFamily.Monospace,
+                            ),
+                            textAlign = TextAlign.Justify,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.errorContainer)
+                                .padding(32.dp)
+
+                        )
+
                 } else if (viewModel.showResetPassword)
                     TextButton(
                         onClick = { viewModel.showResetPasswordDialog = true },
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Forgot password?")
                     }

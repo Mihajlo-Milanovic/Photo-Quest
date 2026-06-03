@@ -25,12 +25,19 @@ class UserRepository @Inject constructor(
         }
     }
 
-    fun logIn(email: String, password: String) = remoteAuthDataSource.logIn(email, password)
-    fun signUp(email: String, password: String) = remoteAuthDataSource.signUp(email, password)
+    fun logIn(context: Context, email: String, password: String, onComplete: () -> Unit) =
+        remoteAuthDataSource.logIn(context, email, password, onComplete)
+
+    fun signUp(context: Context, email: String, password: String, onSuccess: () -> Unit) =
+        remoteAuthDataSource.signUp(context, email, password, onSuccess)
+
     fun logOut() = remoteAuthDataSource.logOut()
 
-    suspend fun updateUser(user: User) = remoteAuthDataSource.updateUser(user)
-    suspend fun changeEmail(email: String) = remoteAuthDataSource.changeEmail(email)
-    fun sendVerificationEmail(context: Context, coroutineScope: CoroutineScope) = remoteAuthDataSource.sendVerificationEmail(context, coroutineScope)
-    fun sendPasswordResetEmail(email: String, context: Context) = remoteAuthDataSource.sendPasswordResetEmail(email, context)
+    fun updateUser(user: User) = remoteAuthDataSource.updateUser(user)
+    fun changeEmail(email: String) = remoteAuthDataSource.changeEmail(email)
+    fun sendVerificationEmail(context: Context, coroutineScope: CoroutineScope) =
+        remoteAuthDataSource.sendVerificationEmail(context, coroutineScope)
+
+    fun sendPasswordResetEmail(email: String, context: Context) =
+        remoteAuthDataSource.sendPasswordResetEmail(email, context)
 }
