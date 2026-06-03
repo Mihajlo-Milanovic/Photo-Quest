@@ -17,10 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -120,6 +117,7 @@ fun LogInScreen(
                         imeAction = ImeAction.Next,
                         showKeyboardOnFocus = true,
                         capitalization = KeyboardCapitalization.None,
+                        keyboardType = KeyboardType.Email,
                     )
                 )
 
@@ -144,9 +142,10 @@ fun LogInScreen(
 
                     keyboardOptions = KeyboardOptions(
                         autoCorrectEnabled = false,
-                        imeAction = ImeAction.Next,
+                        imeAction = if (viewModel.showSignUp) ImeAction.Next else ImeAction.Done,
                         showKeyboardOnFocus = true,
                         capitalization = KeyboardCapitalization.None,
+                        keyboardType = KeyboardType.Password,
                     )
                 )
 
@@ -174,6 +173,7 @@ fun LogInScreen(
                             imeAction = ImeAction.Done,
                             showKeyboardOnFocus = true,
                             capitalization = KeyboardCapitalization.None,
+                            keyboardType = KeyboardType.Password,
                         )
                     )
 
