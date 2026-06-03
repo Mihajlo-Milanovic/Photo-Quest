@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class HomeViewModel: ViewModel() {
+class HomeScreenViewModel: ViewModel() {
 
     private val _text = MutableStateFlow("This is home")
     val text = _text.asStateFlow()
