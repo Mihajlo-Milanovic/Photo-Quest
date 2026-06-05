@@ -1,18 +1,16 @@
 package com.example.photo_quest.data.sources
 
-import android.content.Context
 import android.net.Uri
 import android.util.Log
-import android.widget.Toast
 import com.example.photo_quest.data.models.User
 import com.google.firebase.Firebase
+import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.auth
-import com.google.firebase.auth.userProfileChangeRequest
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,7 +23,7 @@ class RemoteAuthDataSource @Inject constructor() {
 
             Log.d(
                 "AUTH::STATE", "onAuthStateChanged: ${
-                    auth.currentUser?.let { it ->
+                    auth.currentUser?.let {
                         User(
                             name = it.displayName ?: "",
                             email = it.email ?: "",
@@ -35,7 +33,6 @@ class RemoteAuthDataSource @Inject constructor() {
                         )
                     } ?: "NULL"
                 }")
-
             trySend(auth.currentUser)
         }
 
@@ -46,91 +43,83 @@ class RemoteAuthDataSource @Inject constructor() {
         }
     }
 
-    fun logIn(context: Context, email: String, password: String, onComplete: () -> Unit) = Firebase.auth.signInWithEmailAndPassword(email, password)
-        .addOnCompleteListener { task ->
-            onComplete()
-            if (task.isSuccessful) {
-                Toast.makeText(context, "Log in successful", Toast.LENGTH_SHORT).show()
-                Log.d("AUTH::LOG_IN", "signInWithEmail:success")
-            } else {
-                Toast.makeText(context, "Log in unsuccessful", Toast.LENGTH_SHORT).show()
-                Log.w("AUTH::LOG_IN", "signInWithEmail:failure", task.exception)
-            }
+    suspend fun logIn(email: String, password: String): AuthResult? {
+        var result: AuthResult? = null
+        try {
+            result = Firebase.auth.signInWithEmailAndPassword(email, password).await()
+            Log.d("AUTH::LOG_IN", "signInWithEmail:success")
+        } catch (ex: Exception) {
+            Log.e("AUTH::LOG_IN", "signInWithEmail:failure", ex)
         }
-
-    fun signUp(context: Context, email: String, password: String, onSuccess: () -> Unit) = Firebase.auth.createUserWithEmailAndPassword(email, password)
-        .addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                onSuccess()
-                Toast.makeText(context, "Sign up successful", Toast.LENGTH_SHORT).show()
-                Log.d("AUTH::SIGN_UP", "createUserWithEmail:success")
-            }
-            else{
-                Toast.makeText(context, "Sign up unsuccessful", Toast.LENGTH_SHORT).show()
-                Log.w("AUTH::SIGN_UP", "createUserWithEmail:failure", task.exception)
-            }
-        }
-
-    fun logOut() = Firebase.auth.signOut()
-
-    fun updateUser(user: User) {
-
-        val profileUpdates = userProfileChangeRequest {
-            displayName = user.name
-            photoUri = user.photoUrl
-        }
-
-        Firebase.auth.currentUser?.updateProfile(profileUpdates)
-            ?.addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d("AUTH::USER_UPDATE", "User profile updated.")
-                }
-            }
+        return result
     }
 
-    fun changeEmail(email: String) {
-        Firebase.auth.currentUser?.verifyBeforeUpdateEmail(email)
-            ?.addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d("AUTH::E-MAIL_CHANGE", "User email address updated.")
-                }
-            }
+    suspend fun signUp(email: String, password: String): AuthResult? {
+        var result: AuthResult? = null
+        try {
+            result = Firebase.auth.createUserWithEmailAndPassword(email, password).await()
+            Log.d("AUTH::SIGN_UP", "createUserWithEmail:success")
+        } catch (ex: Exception) {
+            Log.e("AUTH::SIGN_UP", "createUserWithEmail:failure", ex)
+        }
+        return result
     }
 
-    fun sendPasswordResetEmail(email: String, context: Context) {
+    fun logOut() = try {
+        Firebase.auth.signOut()
+        Log.d("AUTH::LOGOUT", "User signed out.")
+    } catch (ex: Exception) {
+        Log.e("AUTH::LOGOUT", "Error signing out", ex)
+    }
+
+    suspend fun updateUser(profileUpdates: UserProfileChangeRequest): Boolean = try {
+        Firebase.auth.currentUser?.let {
+            it.updateProfile(profileUpdates).await()
+            Log.d("AUTH::USER_UPDATE", "User profile updated.")
+            return true
+        }
+        return false
+    } catch (ex: Exception) {
+        Log.e("AUTH::USER_UPDATE", "Error updating user profile", ex)
+        return false
+    }
+
+    suspend fun changeEmail(email: String): Boolean = try {
+        Firebase.auth.currentUser?.let{
+            it.verifyBeforeUpdateEmail(email).await()
+            Log.d("AUTH::E-MAIL_CHANGE", "User email address updated.")
+            return true
+        }
+        return false
+    } catch (ex: Exception) {
+        Log.e("AUTH::E-MAIL_CHANGE", "Error updating user email", ex)
+        return false
+    }
+
+    suspend fun sendPasswordResetEmail(email: String): Boolean = try {
         Firebase.auth.useAppLanguage()
-        Firebase.auth.sendPasswordResetEmail(email)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Toast.makeText(context, "Email sent to $email", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(context, "Failed to send email. Check for typos.", Toast.LENGTH_SHORT).show()
-                }
-            }
+        Firebase.auth.sendPasswordResetEmail(email).await()
+        Log.d("AUTH::RESET_E-MAIL", "Password reset e-mail sent.")
+        return true
+    } catch (ex: Exception) {
+        Log.e("AUTH::RESET_E-MAIL", "Error while sending password reset e-mail.", ex)
+        return false
     }
 
-    fun sendVerificationEmail(context: Context, coroutineScope: CoroutineScope) {
+    suspend fun sendVerificationEmail(): Boolean = try {
         Firebase.auth.useAppLanguage()
-
-        coroutineScope.launch {
-                Firebase.auth.currentUser?.let{ authUser ->
-                authUser.sendEmailVerification().addOnCompleteListener { task ->
-                    if (task.isSuccessful)
-                        Toast.makeText(
-                            context, "Verification e-mail sent to ${
-                                authUser.email?.let {
-                                    it.slice(IntRange(0, 2)) + "*****" +
-                                            it.slice(IntRange(it.length - 10, it.length - 1))
-                                }
-                            }", Toast.LENGTH_SHORT
-                        ).show()
-                    else {
-                        Log.e("AUTH::VERIFICATION_EMAIL", "Failed to send verification email: ${task.exception?.message}")
-                        Toast.makeText(context, "Failed to send verification email. ${task.exception?.message}", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
+        Firebase.auth.currentUser?.let {
+            it.sendEmailVerification().await()
+            Log.d("AUTH::VERIFICATION_EMAIL", "Verification e-mail sent to ${it.email}")
+            return true
         }
-
+        return false
+    } catch (ex: Exception) {
+        Log.e("AUTH::VERIFICATION_EMAIL", "Failed to send verification email", ex)
+        return false
     }
+
+
 }
+
+

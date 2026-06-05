@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -42,18 +43,18 @@ class LogInScreenViewModel @Inject constructor(
 
         loading = true
 
-        if(user.value != null) {
+        if (user.value != null) {
             goToHome()
             loading = false
         }
 
-        if (email.isEmpty()){
+        if (email.isEmpty()) {
             Toast.makeText(context, "Invalid e-mail address", Toast.LENGTH_SHORT).show()
             loading = false
             return
         }
 
-        if (password.isEmpty()){
+        if (password.isEmpty()) {
             Toast.makeText(context, "Invalid password", Toast.LENGTH_SHORT).show()
             loading = false
             return
@@ -68,20 +69,33 @@ class LogInScreenViewModel @Inject constructor(
 
     fun signUp(context: Context) {
 
-        if (!checkPasswords(context)){
+        if (!checkPasswords(context)) {
             loading = false
             return
         }
-        userRepository.signUp(context, email, password) { sendVerificationEmail(context = context) }
+        viewModelScope.launch {
+
+            if (userRepository.signUp(email, password) != null) {
+                Toast.makeText(context, "Sign up successful", Toast.LENGTH_SHORT).show()
+                sendVerificationEmail(context = context)
+            } else
+                Toast.makeText(context, "Sign up unsuccessful", Toast.LENGTH_SHORT).show()
+        }
     }
 
-    fun logIn(context: Context) = userRepository.logIn(context, email, password) {
+    fun logIn(context: Context) = viewModelScope.launch {
+
+        if (userRepository.logIn(email, password) != null)
+            Toast.makeText(context, "Log in successful", Toast.LENGTH_SHORT).show()
+        else
+            Toast.makeText(context, "Log in unsuccessful", Toast.LENGTH_SHORT).show()
+
         loading = false
     }
 
 
-    fun checkPasswords(context: Context) : Boolean{
-        if (!password.matches(Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).+$"))){
+    fun checkPasswords(context: Context): Boolean {
+        if (!password.matches(Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).+$"))) {
             showPasswordRequirements = true
             //Toast.makeText(context, "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character", Toast.LENGTH_SHORT).show()
             return false
@@ -93,11 +107,30 @@ class LogInScreenViewModel @Inject constructor(
         return true
     }
 
-    fun resetPasswordResetEmail(context: Context) {
-        userRepository.sendPasswordResetEmail(email, context)
+    fun resetPasswordResetEmail(context: Context) = viewModelScope.launch {
+        if (userRepository.sendPasswordResetEmail(email))
+            Toast.makeText(context, "Email sent to $email", Toast.LENGTH_SHORT).show()
+        else
+            Toast.makeText(context, "Failed to send email. Check for typos.", Toast.LENGTH_SHORT).show()
         showResetPasswordDialog = false
     }
 
-    fun sendVerificationEmail(context: Context) = userRepository.sendVerificationEmail(context, viewModelScope)
+    fun sendVerificationEmail(context: Context) = viewModelScope.launch {
+        if (userRepository.sendVerificationEmail())
+            user.value?.email?.let {
+                Toast.makeText(
+                    context,
+                    "Verification e-mail sent to ${
+                        it.slice(IntRange(0, 2))
+                                + "*****" +
+                                it.slice(IntRange(it.length - 10, it.length - 1))
+                    }",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        else
+            Toast.makeText(context, "Failed to send verification email.", Toast.LENGTH_SHORT).show()
+
+    }
 
 }

@@ -1,10 +1,9 @@
 package com.example.photo_quest.data.repositories
 
-import android.content.Context
 import android.net.Uri
 import com.example.photo_quest.data.models.User
 import com.example.photo_quest.data.sources.RemoteAuthDataSource
-import kotlinx.coroutines.CoroutineScope
+import com.google.firebase.auth.userProfileChangeRequest
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -25,19 +24,23 @@ class UserRepository @Inject constructor(
         }
     }
 
-    fun logIn(context: Context, email: String, password: String, onComplete: () -> Unit) =
-        remoteAuthDataSource.logIn(context, email, password, onComplete)
+    suspend fun logIn(email: String, password: String) = remoteAuthDataSource.logIn(email, password)
 
-    fun signUp(context: Context, email: String, password: String, onSuccess: () -> Unit) =
-        remoteAuthDataSource.signUp(context, email, password, onSuccess)
+    suspend fun signUp(email: String, password: String) = remoteAuthDataSource.signUp(email, password)
 
     fun logOut() = remoteAuthDataSource.logOut()
 
-    fun updateUser(user: User) = remoteAuthDataSource.updateUser(user)
-    fun changeEmail(email: String) = remoteAuthDataSource.changeEmail(email)
-    fun sendVerificationEmail(context: Context, coroutineScope: CoroutineScope) =
-        remoteAuthDataSource.sendVerificationEmail(context, coroutineScope)
+    suspend fun updateUser(user: User): Boolean {
 
-    fun sendPasswordResetEmail(email: String, context: Context) =
-        remoteAuthDataSource.sendPasswordResetEmail(email, context)
+        val profileUpdates = userProfileChangeRequest {
+            displayName = user.name
+            photoUri = user.photoUrl
+        }
+        return remoteAuthDataSource.updateUser(profileUpdates)
+    }
+
+    suspend fun changeEmail(email: String) = remoteAuthDataSource.changeEmail(email)
+
+    suspend fun sendPasswordResetEmail(email: String) = remoteAuthDataSource.sendPasswordResetEmail(email)
+    suspend fun sendVerificationEmail() = remoteAuthDataSource.sendVerificationEmail()
 }
