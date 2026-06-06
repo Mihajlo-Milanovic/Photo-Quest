@@ -43,16 +43,24 @@ class RemoteAuthDataSource @Inject constructor() {
         }
     }
 
-    suspend fun logIn(email: String, password: String): AuthResult? {
-        var result: AuthResult? = null
+    suspend fun logIn(email: String, password: String): String =
         try {
-            result = Firebase.auth.signInWithEmailAndPassword(email, password).await()
-            Log.d("AUTH::LOG_IN", "signInWithEmail:success")
+            Firebase.auth.signInWithEmailAndPassword(email, password).await().user?.let {
+                return if (it.isEmailVerified) {
+                    Log.d("AUTH::LOG_IN", "signInWithEmail:success")
+                    "Log in successful"
+                }
+                else{
+                    Log.d("AUTH::LOG_IN", "signInWithEmail:failure \t E-mail not verified")
+                    Firebase.auth.signOut()
+                    "E-mail not verified"
+                }
+            }
+            "Wrong e-mail or password"
         } catch (ex: Exception) {
             Log.e("AUTH::LOG_IN", "signInWithEmail:failure", ex)
+            "Invalid credentials"
         }
-        return result
-    }
 
     suspend fun signUp(email: String, password: String): AuthResult? {
         var result: AuthResult? = null
