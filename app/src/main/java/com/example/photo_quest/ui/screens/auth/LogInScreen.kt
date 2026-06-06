@@ -1,27 +1,44 @@
 package com.example.photo_quest.ui.screens.auth
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Arrangement.Absolute.spacedBy
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.input.*
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.photo_quest.ui.components.LogInGreeting
+import com.example.photo_quest.ui.components.LogInSignUpButtons
+import com.example.photo_quest.ui.components.PasswordRequirements
+import com.example.photo_quest.ui.components.PhotoQuestLogo
 import com.example.photo_quest.ui.viewmodels.auth.LogInScreenViewModel
 
 @Composable
@@ -33,23 +50,23 @@ fun LogInScreen(
     val context = LocalContext.current
     val user by viewModel.user.collectAsStateWithLifecycle()
 
-    LaunchedEffect(user, user?.emailVerified) {
+    LaunchedEffect(user) {
 
         user?.let {
+
+            viewModel.showGreeting = true
+
             if (it.emailVerified) {
                 goToHome()
                 viewModel.loading = false
-            }
-            else {
-                viewModel.email = it.email
-                viewModel.loading = true
+            } else {
                 viewModel.showVerifyEmailMessage = true
                 viewModel.showResendVerificationEmail = true
             }
         }
     }
 
-    if (viewModel.showResetPasswordDialog)
+    if (viewModel.showResetPasswordDialog && user != null) {
         Dialog(
             onDismissRequest = { viewModel.showResetPasswordDialog = false },
         ) {
@@ -75,12 +92,13 @@ fun LogInScreen(
 
                 val context = LocalContext.current
                 Button(
-                    onClick = { viewModel.resetPasswordResetEmail(context = context) }
+                    onClick = { viewModel.sendPasswordResetEmail(context = context, user!!.email) }
                 ) {
                     Text("Send e-mail")
                 }
             }
         }
+    }
 
     Column(
         verticalArrangement = Arrangement.SpaceAround,
@@ -90,32 +108,16 @@ fun LogInScreen(
             .fillMaxSize()
     ) {
 
-        Text(
-            text = "Photo Quest",
-            fontStyle = FontStyle.Italic,
-            fontFamily = FontFamily.Cursive,
-            fontSize = 64.sp,
-            color = MaterialTheme.colorScheme.primary,
-        )
+        PhotoQuestLogo()
 
         if (viewModel.loading) {
             Column(
-                verticalArrangement = spacedBy(128.dp, Alignment.CenterVertically),
+                verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
                 CircularProgressIndicator()
-
-                if (viewModel.showVerifyEmailMessage) {
-                    Text("Please verify your e-mail")
-
-                    TextButton(
-                        onClick = { viewModel.sendVerificationEmail(context = context) },
-                    ) {
-                        Text("Resend verification e-mail")
-                    }
-                }
             }
         } else {
             Column(
@@ -124,73 +126,81 @@ fun LogInScreen(
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                OutlinedTextField(
-                    value = viewModel.email,
-                    onValueChange = {
-                        viewModel.email = it
-                    },
-                    label = { Text("E-mail") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        autoCorrectEnabled = true,
-                        imeAction = ImeAction.Next,
-                        showKeyboardOnFocus = true,
-                        capitalization = KeyboardCapitalization.None,
-                        keyboardType = KeyboardType.Email,
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                if (viewModel.showGreeting) {
+                    //User has an account with unverified e-mail address
+                    user?.let {
+                        LogInGreeting(
+//                            modifier = TODO(),
+                            username = it.name,
+                            showVerifyEmailMessage = viewModel.showVerifyEmailMessage,
+                            onResendVerificationEmail = { viewModel.sendVerificationEmail(context) },
+                        )
+                    }
+                } else {
+                    // Combined Log in and Sign in forms
 
-                OutlinedTextField(
-                    value = viewModel.password,
-                    onValueChange = {
-                        viewModel.password = it
-                    },
-                    label = { Text("Password") },
-                    visualTransformation = if (viewModel.showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-                        IconButton(
-                            onClick = { viewModel.showPassword = !viewModel.showPassword }
-                        ) {
-                            if (viewModel.showPassword)
-                                Icon(Icons.Default.VisibilityOff, contentDescription = "Hide password")
-                            else
-                                Icon(Icons.Default.Visibility, contentDescription = "Show password")
-                        }
-                    },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        autoCorrectEnabled = false,
-                        imeAction = if (viewModel.showSignUp) ImeAction.Next else ImeAction.Done,
-                        showKeyboardOnFocus = true,
-                        capitalization = KeyboardCapitalization.None,
-                        keyboardType = KeyboardType.Password,
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                if (viewModel.showSignUp) {
+                    if (viewModel.showSignUp)
                     OutlinedTextField(
-                        value = viewModel.password2,
+                        value = viewModel.username,
                         onValueChange = {
-                            viewModel.password2 = it
+                            viewModel.username = it
                         },
-                        label = { Text("Repeat password") },
+                        label = { Text("Username") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            autoCorrectEnabled = true,
+                            imeAction = ImeAction.Next,
+                            showKeyboardOnFocus = true,
+                            capitalization = KeyboardCapitalization.None,
+                            keyboardType = KeyboardType.Text,
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    OutlinedTextField(
+                        value = viewModel.email,
+                        onValueChange = {
+                            viewModel.email = it
+                        },
+                        label = { Text("E-mail") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            autoCorrectEnabled = true,
+                            imeAction = ImeAction.Next,
+                            showKeyboardOnFocus = true,
+                            capitalization = KeyboardCapitalization.None,
+                            keyboardType = KeyboardType.Email,
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    OutlinedTextField(
+                        value = viewModel.password,
+                        onValueChange = {
+                            viewModel.password = it
+                        },
+                        label = { Text("Password") },
                         visualTransformation = if (viewModel.showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
                             IconButton(
                                 onClick = { viewModel.showPassword = !viewModel.showPassword }
                             ) {
                                 if (viewModel.showPassword)
-                                    Icon(Icons.Default.VisibilityOff, contentDescription = "Hide password")
+                                    Icon(
+                                        Icons.Default.VisibilityOff,
+                                        contentDescription = "Hide password"
+                                    )
                                 else
-                                    Icon(Icons.Default.Visibility, contentDescription = "Show password")
+                                    Icon(
+                                        Icons.Default.Visibility,
+                                        contentDescription = "Show password"
+                                    )
                             }
                         },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
                             autoCorrectEnabled = false,
-                            imeAction = ImeAction.Done,
+                            imeAction = if (viewModel.showSignUp) ImeAction.Next else ImeAction.Done,
                             showKeyboardOnFocus = true,
                             capitalization = KeyboardCapitalization.None,
                             keyboardType = KeyboardType.Password,
@@ -198,73 +208,68 @@ fun LogInScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    if (viewModel.showPasswordRequirements)
-                        Text(
-                            text = """ 
-                                Password must contain
-                                one uppercase letter    [A-Z],
-                                one lowercase letter    [a-z],
-                                one number              [0-9],
-                                special character       
-                                [e.g. !, @, #, $, %, &, *]
-                            """.trimIndent(),
-                            style = LocalTextStyle.current.copy(
-                                color = MaterialTheme.colorScheme.onErrorContainer,
-                                fontSize = 12.sp,
-                                fontFamily = FontFamily.Monospace,
+                    if (viewModel.showSignUp) {
+                        OutlinedTextField(
+                            value = viewModel.password2,
+                            onValueChange = {
+                                viewModel.password2 = it
+                            },
+                            label = { Text("Repeat password") },
+                            visualTransformation = if (viewModel.showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                            trailingIcon = {
+                                IconButton(
+                                    onClick = { viewModel.showPassword = !viewModel.showPassword }
+                                ) {
+                                    if (viewModel.showPassword)
+                                        Icon(
+                                            Icons.Default.VisibilityOff,
+                                            contentDescription = "Hide password"
+                                        )
+                                    else
+                                        Icon(
+                                            Icons.Default.Visibility,
+                                            contentDescription = "Show password"
+                                        )
+                                }
+                            },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(
+                                autoCorrectEnabled = false,
+                                imeAction = ImeAction.Done,
+                                showKeyboardOnFocus = true,
+                                capitalization = KeyboardCapitalization.None,
+                                keyboardType = KeyboardType.Password,
                             ),
-                            textAlign = TextAlign.Justify,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.errorContainer)
-                                .padding(32.dp)
-
+                            modifier = Modifier.fillMaxWidth()
                         )
 
-                } else if (viewModel.showResetPassword)
-                    TextButton(
-                        onClick = { viewModel.showResetPasswordDialog = true },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Forgot password?")
-                    }
-                else
-                    Spacer(modifier = Modifier.height(64.dp))
+                        if (viewModel.showPasswordRequirements)
+                            PasswordRequirements()
+
+
+                    } else if (viewModel.showResetPassword)
+                        TextButton(
+                            onClick = { viewModel.showResetPasswordDialog = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Forgot password?")
+                        }
+                    else
+                        Spacer(modifier = Modifier.height(64.dp))
+                }
             }
 
-            Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.Top),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-
-                Button(
-                    onClick = {
-                        viewModel.authenticate(
-                            context = context,
-                            goToHome = goToHome
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(0.7f),
-                ) {
-                    if (viewModel.showSignUp)
-                        Text("Sign Up")
-                    else
-                        Text("Log In")
-                }
-
-                TextButton(
-                    onClick = { viewModel.showSignUp = !viewModel.showSignUp },
-                ) {
-                    if (viewModel.showSignUp)
-                        Text("Already have an account?")
-                    else
-                        Text("Don't have an account?")
-                }
-
-
-            }
+            LogInSignUpButtons(
+                modifier = Modifier,
+                onAuthenticate = {
+                    viewModel.authenticate(
+                        context = context,
+                        goToHome = goToHome
+                    )
+                },
+                showSignUp = viewModel.showSignUp,
+                onLogInSignUpToggle = { viewModel.showSignUp = !viewModel.showSignUp }
+            )
         }
     }
 }

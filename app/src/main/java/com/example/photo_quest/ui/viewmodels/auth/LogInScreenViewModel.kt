@@ -27,7 +27,8 @@ class LogInScreenViewModel @Inject constructor(
         initialValue = null
     )
 
-    var email by mutableStateOf(user.value?.email ?: "")
+    var username by mutableStateOf("")
+    var email by mutableStateOf("")
     var password by mutableStateOf("")
     var password2 by mutableStateOf("")
     var showPassword by mutableStateOf(false)
@@ -38,6 +39,7 @@ class LogInScreenViewModel @Inject constructor(
     var showResendVerificationEmail by mutableStateOf(false)
     var showVerifyEmailMessage by mutableStateOf(false)
     var showPasswordRequirements by mutableStateOf(false)
+    var showGreeting by mutableStateOf(false)
 
     fun authenticate(context: Context, goToHome: () -> Unit) {
 
@@ -80,15 +82,15 @@ class LogInScreenViewModel @Inject constructor(
                 sendVerificationEmail(context = context)
             } else
                 Toast.makeText(context, "Sign up unsuccessful", Toast.LENGTH_SHORT).show()
+
+            loading = false
         }
     }
 
     fun logIn(context: Context) = viewModelScope.launch {
 
-        if (userRepository.logIn(email, password) != null)
-            Toast.makeText(context, "Log in successful", Toast.LENGTH_SHORT).show()
-        else
-            Toast.makeText(context, "Log in unsuccessful", Toast.LENGTH_SHORT).show()
+        val result = userRepository.logIn(email, password)
+        Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
 
         loading = false
     }
@@ -107,11 +109,12 @@ class LogInScreenViewModel @Inject constructor(
         return true
     }
 
-    fun resetPasswordResetEmail(context: Context) = viewModelScope.launch {
+    fun sendPasswordResetEmail(context: Context, email: String) = viewModelScope.launch {
         if (userRepository.sendPasswordResetEmail(email))
-            Toast.makeText(context, "Email sent to $email", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "E-mail sent to $email", Toast.LENGTH_SHORT).show()
         else
-            Toast.makeText(context, "Failed to send email. Check for typos.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Failed to send email. Check for typos.", Toast.LENGTH_SHORT)
+                .show()
         showResetPasswordDialog = false
     }
 
@@ -120,11 +123,7 @@ class LogInScreenViewModel @Inject constructor(
             user.value?.email?.let {
                 Toast.makeText(
                     context,
-                    "Verification e-mail sent to ${
-                        it.slice(IntRange(0, 2))
-                                + "*****" +
-                                it.slice(IntRange(it.length - 10, it.length - 1))
-                    }",
+                    "Verification e-mail sent to $it",
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -132,5 +131,6 @@ class LogInScreenViewModel @Inject constructor(
             Toast.makeText(context, "Failed to send verification email.", Toast.LENGTH_SHORT).show()
 
     }
+
 
 }
