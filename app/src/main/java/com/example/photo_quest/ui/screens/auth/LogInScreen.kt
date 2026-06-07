@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Arrangement.Absolute.spacedBy
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -54,21 +55,26 @@ fun LogInScreen(
 
         user?.let {
 
-            viewModel.showGreeting = true
-
             if (it.emailVerified) {
                 goToHome()
-                viewModel.loading = false
+//                viewModel.uiState = viewModel.uiState.copy(
+//                    loading = false
+//                )
             } else {
-                viewModel.showVerifyEmailMessage = true
-                viewModel.showResendVerificationEmail = true
+                viewModel.uiState = viewModel.uiState.copy(
+                    userEmailUnverified = true
+                )
             }
         }
     }
 
-    if (viewModel.showResetPasswordDialog && user != null) {
+    if (viewModel.uiState.showResetPasswordDialog && user != null) {
         Dialog(
-            onDismissRequest = { viewModel.showResetPasswordDialog = false },
+            onDismissRequest = {
+                viewModel.uiState = viewModel.uiState.copy(
+                    showResetPasswordDialog = false
+                )
+            },
         ) {
             Column(
                 verticalArrangement = spacedBy(16.dp, Alignment.CenterVertically),
@@ -110,15 +116,8 @@ fun LogInScreen(
 
         PhotoQuestLogo()
 
-        if (viewModel.loading) {
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                CircularProgressIndicator()
-            }
+        if (viewModel.uiState.loading) {
+            CircularProgressIndicator()
         } else {
             Column(
                 verticalArrangement = spacedBy(16.dp, Alignment.CenterVertically),
@@ -126,37 +125,39 @@ fun LogInScreen(
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                if (viewModel.showGreeting) {
+                if (viewModel.uiState.userEmailUnverified) {
                     //User has an account with unverified e-mail address
                     user?.let {
                         LogInGreeting(
-//                            modifier = TODO(),
+                            modifier = Modifier
+                                .fillMaxHeight(0.5f),
                             username = it.name,
-                            showVerifyEmailMessage = viewModel.showVerifyEmailMessage,
+                            showVerifyEmailMessage = true,
                             onResendVerificationEmail = { viewModel.sendVerificationEmail(context) },
                         )
                     }
                 } else {
                     // Combined Log in and Sign in forms
 
-                    if (viewModel.showSignUp)
-                    OutlinedTextField(
-                        value = viewModel.username,
-                        onValueChange = {
-                            viewModel.username = it
-                        },
-                        label = { Text("Username") },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            autoCorrectEnabled = true,
-                            imeAction = ImeAction.Next,
-                            showKeyboardOnFocus = true,
-                            capitalization = KeyboardCapitalization.None,
-                            keyboardType = KeyboardType.Text,
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    if (viewModel.uiState.showSignUp) {
 
+                        OutlinedTextField(
+                            value = viewModel.username,
+                            onValueChange = {
+                                viewModel.username = it
+                            },
+                            label = { Text("Username") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(
+                                autoCorrectEnabled = true,
+                                imeAction = ImeAction.Next,
+                                showKeyboardOnFocus = true,
+                                capitalization = KeyboardCapitalization.None,
+                                keyboardType = KeyboardType.Text,
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                     OutlinedTextField(
                         value = viewModel.email,
                         onValueChange = {
@@ -180,12 +181,16 @@ fun LogInScreen(
                             viewModel.password = it
                         },
                         label = { Text("Password") },
-                        visualTransformation = if (viewModel.showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                        visualTransformation = if (viewModel.uiState.showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
                             IconButton(
-                                onClick = { viewModel.showPassword = !viewModel.showPassword }
+                                onClick = {
+                                    viewModel.uiState = viewModel.uiState.copy(
+                                        showPassword = !viewModel.uiState.showPassword
+                                    )
+                                }
                             ) {
-                                if (viewModel.showPassword)
+                                if (viewModel.uiState.showPassword)
                                     Icon(
                                         Icons.Default.VisibilityOff,
                                         contentDescription = "Hide password"
@@ -200,7 +205,7 @@ fun LogInScreen(
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
                             autoCorrectEnabled = false,
-                            imeAction = if (viewModel.showSignUp) ImeAction.Next else ImeAction.Done,
+                            imeAction = if (viewModel.uiState.showSignUp) ImeAction.Next else ImeAction.Done,
                             showKeyboardOnFocus = true,
                             capitalization = KeyboardCapitalization.None,
                             keyboardType = KeyboardType.Password,
@@ -208,19 +213,23 @@ fun LogInScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    if (viewModel.showSignUp) {
+                    if (viewModel.uiState.showSignUp) {
                         OutlinedTextField(
                             value = viewModel.password2,
                             onValueChange = {
                                 viewModel.password2 = it
                             },
                             label = { Text("Repeat password") },
-                            visualTransformation = if (viewModel.showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                            visualTransformation = if (viewModel.uiState.showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                             trailingIcon = {
                                 IconButton(
-                                    onClick = { viewModel.showPassword = !viewModel.showPassword }
+                                    onClick = {
+                                        viewModel.uiState = viewModel.uiState.copy(
+                                            showPassword = !viewModel.uiState.showPassword
+                                        )
+                                    }
                                 ) {
-                                    if (viewModel.showPassword)
+                                    if (viewModel.uiState.showPassword)
                                         Icon(
                                             Icons.Default.VisibilityOff,
                                             contentDescription = "Hide password"
@@ -243,13 +252,17 @@ fun LogInScreen(
                             modifier = Modifier.fillMaxWidth()
                         )
 
-                        if (viewModel.showPasswordRequirements)
+                        if (viewModel.uiState.showPasswordRequirements)
                             PasswordRequirements()
 
 
-                    } else if (viewModel.showResetPassword)
+                    } else if (viewModel.uiState.showResetPassword)
                         TextButton(
-                            onClick = { viewModel.showResetPasswordDialog = true },
+                            onClick = {
+                                viewModel.uiState = viewModel.uiState.copy(
+                                    showResetPasswordDialog = true
+                                )
+                            },
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text("Forgot password?")
@@ -262,13 +275,23 @@ fun LogInScreen(
             LogInSignUpButtons(
                 modifier = Modifier,
                 onAuthenticate = {
-                    viewModel.authenticate(
-                        context = context,
-                        goToHome = goToHome
-                    )
+                    if (viewModel.uiState.userEmailUnverified)
+                        viewModel.reloadUser()
+                    else
+                        viewModel.authenticate(
+                            context = context,
+                            goToHome = goToHome
+                        )
                 },
-                showSignUp = viewModel.showSignUp,
-                onLogInSignUpToggle = { viewModel.showSignUp = !viewModel.showSignUp }
+                showSignUp = if (viewModel.uiState.userEmailUnverified) false else viewModel.uiState.showSignUp,
+                onLogInSignUpToggle = {
+                    if (viewModel.uiState.userEmailUnverified) {
+                        viewModel.logOut()
+                    } else
+                        viewModel.uiState = viewModel.uiState.copy(
+                            showSignUp = !viewModel.uiState.showSignUp
+                        )
+                }
             )
         }
     }

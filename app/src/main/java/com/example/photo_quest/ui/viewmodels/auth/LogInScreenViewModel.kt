@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.photo_quest.data.models.LogInState
 import com.example.photo_quest.data.models.User
 import com.example.photo_quest.data.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,38 +32,39 @@ class LogInScreenViewModel @Inject constructor(
     var email by mutableStateOf("")
     var password by mutableStateOf("")
     var password2 by mutableStateOf("")
-    var showPassword by mutableStateOf(false)
-    var showSignUp by mutableStateOf(false)
-    var loading by mutableStateOf(false)
-    var showResetPassword by mutableStateOf(false)
-    var showResetPasswordDialog by mutableStateOf(false)
-    var showResendVerificationEmail by mutableStateOf(false)
-    var showVerifyEmailMessage by mutableStateOf(false)
-    var showPasswordRequirements by mutableStateOf(false)
-    var showGreeting by mutableStateOf(false)
+
+    var uiState by mutableStateOf(LogInState())
 
     fun authenticate(context: Context, goToHome: () -> Unit) {
 
-        loading = true
+        uiState = uiState.copy(
+            loading = true
+        )
 
         if (user.value != null) {
             goToHome()
-            loading = false
+            uiState = uiState.copy(
+                loading = false
+            )
         }
 
         if (email.isEmpty()) {
             Toast.makeText(context, "Invalid e-mail address", Toast.LENGTH_SHORT).show()
-            loading = false
+            uiState = uiState.copy(
+                loading = false
+            )
             return
         }
 
         if (password.isEmpty()) {
             Toast.makeText(context, "Invalid password", Toast.LENGTH_SHORT).show()
-            loading = false
+            uiState = uiState.copy(
+                loading = false
+            )
             return
         }
 
-        if (showSignUp) {
+        if (uiState.showSignUp) {
             signUp(context)
         } else {
             logIn(context)
@@ -72,33 +74,48 @@ class LogInScreenViewModel @Inject constructor(
     fun signUp(context: Context) {
 
         if (!checkPasswords(context)) {
-            loading = false
+            uiState = uiState.copy(
+                loading = false
+            )
             return
         }
         viewModelScope.launch {
 
             if (userRepository.signUp(email, password) != null) {
                 Toast.makeText(context, "Sign up successful", Toast.LENGTH_SHORT).show()
+                userRepository.updateUser(
+                    user.value!!.copy(
+                        name = username
+                    )
+                )
                 sendVerificationEmail(context = context)
+
             } else
                 Toast.makeText(context, "Sign up unsuccessful", Toast.LENGTH_SHORT).show()
 
-            loading = false
+            uiState = uiState.copy(
+                loading = false
+            )
         }
     }
 
     fun logIn(context: Context) = viewModelScope.launch {
 
+        userRepository.reloadUser()
         val result = userRepository.logIn(email, password)
         Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
 
-        loading = false
+        uiState = uiState.copy(
+            loading = false
+        )
     }
 
 
     fun checkPasswords(context: Context): Boolean {
         if (!password.matches(Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).+$"))) {
-            showPasswordRequirements = true
+            uiState = uiState.copy(
+                showPasswordRequirements = true
+            )
             //Toast.makeText(context, "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character", Toast.LENGTH_SHORT).show()
             return false
         }
@@ -115,7 +132,9 @@ class LogInScreenViewModel @Inject constructor(
         else
             Toast.makeText(context, "Failed to send email. Check for typos.", Toast.LENGTH_SHORT)
                 .show()
-        showResetPasswordDialog = false
+        uiState = uiState.copy(
+            showResetPasswordDialog = false
+        )
     }
 
     fun sendVerificationEmail(context: Context) = viewModelScope.launch {
@@ -132,5 +151,20 @@ class LogInScreenViewModel @Inject constructor(
 
     }
 
+    fun reloadUser() = viewModelScope.launch {
+        uiState = uiState.copy(
+            loading = true
+        )
+        userRepository.reloadUser()
+        uiState = uiState.copy(
+            loading = false
+        )
+    }
 
+    fun logOut() {
+        userRepository.logOut()
+        uiState = LogInState(
+            showSignUp = true
+        )
+    }
 }
