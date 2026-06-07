@@ -1,16 +1,25 @@
 package com.example.photo_quest.ui.components
 
+import android.content.res.Configuration
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation3.runtime.NavKey
 import com.example.photo_quest.ui.navigation.Route
+import com.example.photo_quest.ui.theme.PhotoQuestTheme
 
 @Composable
 fun PhotoQuestBottomBar(
@@ -18,6 +27,7 @@ fun PhotoQuestBottomBar(
     currentScreen: NavKey,
     goToHome: () -> Unit,
     goToSettings: () -> Unit,
+    goToLeaderboard: () -> Unit,
 ) {
 
     if (currentScreen == Route.LogIn)
@@ -26,6 +36,13 @@ fun PhotoQuestBottomBar(
     NavigationBar(
         modifier = modifier
     ) {
+
+        NavigationBarItem(
+            selected = currentScreen == Route.Leaderboard,
+            onClick = goToLeaderboard,
+            icon = { Icon(Icons.Default.Leaderboard, contentDescription = "Leaderboard") },
+            label = { Text("Leaderboard") },
+        )
 
         NavigationBarItem(
             selected = currentScreen == Route.Home,
@@ -41,5 +58,37 @@ fun PhotoQuestBottomBar(
             label = { Text("Settings") },
         )
 
+    }
+}
+
+@Preview
+@Composable
+private fun Light() {
+    PhotoQuestTheme {
+        Surface {
+            var currentScreen by remember { mutableStateOf<Route>(Route.Home) }
+            PhotoQuestBottomBar(
+                currentScreen = currentScreen,
+                goToHome = { currentScreen = Route.Home },
+                goToSettings = { currentScreen = Route.Settings },
+                goToLeaderboard = { currentScreen = Route.Leaderboard },
+            )
+        }
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)
+@Composable
+private fun Dark() {
+    PhotoQuestTheme {
+        Surface {
+            var currentScreen by remember { mutableStateOf<Route>(Route.Home) }
+            PhotoQuestBottomBar(
+                currentScreen = currentScreen,
+                goToHome = { currentScreen = Route.Home },
+                goToSettings = { currentScreen = Route.Settings },
+                goToLeaderboard = { currentScreen = Route.Leaderboard },
+            )
+        }
     }
 }
