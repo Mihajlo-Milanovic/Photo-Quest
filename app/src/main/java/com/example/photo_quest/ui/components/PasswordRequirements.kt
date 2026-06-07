@@ -4,12 +4,14 @@ import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,6 +40,7 @@ fun PasswordRequirements(
         textAlign = TextAlign.Center,
         modifier = modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(4))
             .background(MaterialTheme.colorScheme.error)
             .padding(32.dp)
 
@@ -50,7 +53,7 @@ fun PasswordRequirements(
 @Composable
 private fun PasswordRequirementsPreviewLight() {
     PhotoQuestTheme {
-        Surface{
+        Surface {
             PasswordRequirements()
         }
     }
