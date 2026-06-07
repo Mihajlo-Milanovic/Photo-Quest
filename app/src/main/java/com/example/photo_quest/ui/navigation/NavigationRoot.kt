@@ -12,6 +12,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.example.photo_quest.ui.components.PhotoQuestBottomBar
 import com.example.photo_quest.ui.screens.HomeScreen
+import com.example.photo_quest.ui.screens.LeaderboardScreen
 import com.example.photo_quest.ui.screens.SettingsScreen
 import com.example.photo_quest.ui.screens.auth.LogInScreen
 import com.example.photo_quest.ui.viewmodels.HomeScreenViewModel
@@ -32,6 +33,7 @@ fun NavigationRoot(
                 currentScreen = backStack.last(),
                 goToHome = { backStack.add(Route.Home) },
                 goToSettings = { backStack.add(Route.Settings) },
+                goToLeaderboard = { backStack.add(Route.Leaderboard) }
             )
         },
         modifier = modifier,
@@ -78,6 +80,15 @@ fun NavigationRoot(
                                     backStack.add(Route.Home)
                                 },
                                 viewModel = viewModel
+                            )
+                        }
+                    }
+
+                    is Route.Leaderboard -> {
+                        NavEntry(key) {
+//                            val viewModel = hiltViewModel<LeaderboardScreenViewModel>()
+                            LeaderboardScreen(
+//                                viewModel = viewModel
                             )
                         }
                     }
