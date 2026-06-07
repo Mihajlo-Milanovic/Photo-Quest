@@ -1,4 +1,4 @@
-package com.example.photo_quest.ui.screens.auth
+package com.example.photo_quest.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
