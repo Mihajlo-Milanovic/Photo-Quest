@@ -15,6 +15,8 @@ sealed interface Route : NavKey {
     @Serializable
     data object Settings : Route, NavKey
 
+    @Serializable
+    data object Leaderboard : Route, NavKey
 
     // data object for routes that take no parameter
     // data class for routes that take some parameters
