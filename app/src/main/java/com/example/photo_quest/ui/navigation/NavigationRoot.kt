@@ -13,9 +13,10 @@ import androidx.navigation3.ui.NavDisplay
 import com.example.photo_quest.ui.components.PhotoQuestBottomBar
 import com.example.photo_quest.ui.screens.HomeScreen
 import com.example.photo_quest.ui.screens.LeaderboardScreen
+import com.example.photo_quest.ui.screens.NewQuestScreen
+import com.example.photo_quest.ui.screens.SearchScreen
 import com.example.photo_quest.ui.screens.SettingsScreen
 import com.example.photo_quest.ui.screens.auth.LogInScreen
-import com.example.photo_quest.ui.screens.auth.NewQuestScreen
 import com.example.photo_quest.ui.viewmodels.HomeScreenViewModel
 import com.example.photo_quest.ui.viewmodels.SettingsScreenViewModel
 import com.example.photo_quest.ui.viewmodels.auth.LogInScreenViewModel
@@ -35,7 +36,8 @@ fun NavigationRoot(
                 goToHome = { backStack.add(Route.Home) },
                 goToSettings = { backStack.add(Route.Settings) },
                 goToLeaderboard = { backStack.add(Route.Leaderboard) },
-                goToNewQuest = { backStack.add(Route.NewQuest) }
+                goToNewQuest = { backStack.add(Route.NewQuest) },
+                goToSearch = { backStack.add(Route.Search) },
             )
         },
         modifier = modifier,
@@ -99,6 +101,15 @@ fun NavigationRoot(
                         NavEntry(key) {
 //                            val viewModel = hiltViewModel<LeaderboardScreenViewModel>()
                             NewQuestScreen(
+//                                viewModel = viewModel
+                            )
+                        }
+                    }
+
+                    is Route.Search -> {
+                        NavEntry(key) {
+//                            val viewModel = hiltViewModel<LeaderboardScreenViewModel>()
+                            SearchScreen(
 //                                viewModel = viewModel
                             )
                         }

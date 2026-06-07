@@ -21,6 +21,9 @@ sealed interface Route : NavKey {
     @Serializable
     data object NewQuest : Route, NavKey
 
+    @Serializable
+    data object Search : Route, NavKey
+
     // data object for routes that take no parameter
     // data class for routes that take some parameters
 }

@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Leaderboard
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -29,7 +30,8 @@ fun PhotoQuestBottomBar(
     goToHome: () -> Unit,
     goToSettings: () -> Unit,
     goToLeaderboard: () -> Unit,
-    goToNewQuest: () -> Unit
+    goToNewQuest: () -> Unit,
+    goToSearch: () -> Unit,
 ) {
 
     if (currentScreen == Route.LogIn)
@@ -43,7 +45,7 @@ fun PhotoQuestBottomBar(
             selected = currentScreen == Route.Leaderboard,
             onClick = goToLeaderboard,
             icon = { Icon(Icons.Default.Leaderboard, contentDescription = "Leaderboard") },
-            label = { Text("Leaderboard") },
+            label = { Text("Score") },
         )
 
         NavigationBarItem(
@@ -58,6 +60,13 @@ fun PhotoQuestBottomBar(
             onClick = goToHome,
             icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
             label = { Text("Home") },
+        )
+
+        NavigationBarItem(
+            selected = currentScreen == Route.Search,
+            onClick = goToSearch,
+            icon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+            label = { Text("Search") },
         )
 
         NavigationBarItem(
@@ -82,6 +91,7 @@ private fun Light() {
                 goToSettings = { currentScreen = Route.Settings },
                 goToLeaderboard = { currentScreen = Route.Leaderboard },
                 goToNewQuest = { currentScreen = Route.NewQuest },
+                goToSearch = { currentScreen = Route.Search },
             )
         }
     }
@@ -99,6 +109,7 @@ private fun Dark() {
                 goToSettings = { currentScreen = Route.Settings },
                 goToLeaderboard = { currentScreen = Route.Leaderboard },
                 goToNewQuest = { currentScreen = Route.NewQuest },
+                goToSearch = { currentScreen = Route.Search },
             )
         }
     }
