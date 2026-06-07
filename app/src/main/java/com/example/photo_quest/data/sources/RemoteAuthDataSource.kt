@@ -1,15 +1,14 @@
 package com.example.photo_quest.data.sources
 
-import android.net.Uri
 import android.util.Log
-import com.example.photo_quest.data.models.User
 import com.google.firebase.Firebase
 import com.google.firebase.auth.AuthResult
-import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.auth
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -17,34 +16,51 @@ import javax.inject.Singleton
 @Singleton
 class RemoteAuthDataSource @Inject constructor() {
 
-    val user = callbackFlow {
+    private val _user = MutableStateFlow(Firebase.auth.currentUser)
+    val user: StateFlow<FirebaseUser?> = _user.asStateFlow()
 
-        val listener = FirebaseAuth.AuthStateListener { auth ->
-
-            Log.d(
-                "AUTH::STATE", "onAuthStateChanged: ${
-                    auth.currentUser?.let {
-                        User(
-                            name = it.displayName ?: "",
-                            email = it.email ?: "",
-                            photoUrl = it.photoUrl ?: Uri.EMPTY,
-                            emailVerified = it.isEmailVerified,
-                            uid = it.uid
-                        )
-                    } ?: "NULL"
-                }")
-            trySend(auth.currentUser)
-        }
-
-        Firebase.auth.addAuthStateListener(listener)
-
-        awaitClose {
-            Firebase.auth.removeAuthStateListener(listener)
+    init {
+        Firebase.auth.addAuthStateListener {
+            _user.value = it.currentUser
         }
     }
 
+    suspend fun reloadUser() {
+        Firebase.auth.currentUser?.reload()?.await()
+        _user.value = null
+        _user.value = Firebase.auth.currentUser
+        Log.d("AUTH::USER_RELOAD", Firebase.auth.currentUser.toString())
+    }
+
+//    val user = callbackFlow {
+//
+//        val listener = FirebaseAuth.AuthStateListener { auth ->
+//
+//            Log.d(
+//                "AUTH::STATE", "onAuthStateChanged: ${
+//                    auth.currentUser?.let {
+//                        User(
+//                            name = it.displayName ?: "",
+//                            email = it.email ?: "",
+//                            photoUrl = it.photoUrl ?: Uri.EMPTY,
+//                            emailVerified = it.isEmailVerified,
+//                            uid = it.uid
+//                        )
+//                    } ?: "NULL"
+//                }")
+//            trySend(auth.currentUser)
+//        }
+//
+//        Firebase.auth.addAuthStateListener(listener)
+//
+//        awaitClose {
+//            Firebase.auth.removeAuthStateListener(listener)
+//        }
+//    }
+
     suspend fun logIn(email: String, password: String): String =
         try {
+            Firebase.auth.signOut()
             Firebase.auth.signInWithEmailAndPassword(email, password).await().user?.let {
                 return if (it.isEmailVerified) {
                     Log.d("AUTH::LOG_IN", "signInWithEmail:success")
@@ -84,6 +100,7 @@ class RemoteAuthDataSource @Inject constructor() {
         Firebase.auth.currentUser?.let {
             it.updateProfile(profileUpdates).await()
             Log.d("AUTH::USER_UPDATE", "User profile updated.")
+            reloadUser()
             return true
         }
         return false
@@ -96,6 +113,7 @@ class RemoteAuthDataSource @Inject constructor() {
         Firebase.auth.currentUser?.let{
             it.verifyBeforeUpdateEmail(email).await()
             Log.d("AUTH::E-MAIL_CHANGE", "User email address updated.")
+            reloadUser()
             return true
         }
         return false
