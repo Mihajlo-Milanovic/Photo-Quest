@@ -2,6 +2,7 @@ package com.example.photo_quest.ui.components
 
 import android.content.res.Configuration
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.Settings
@@ -28,6 +29,7 @@ fun PhotoQuestBottomBar(
     goToHome: () -> Unit,
     goToSettings: () -> Unit,
     goToLeaderboard: () -> Unit,
+    goToNewQuest: () -> Unit
 ) {
 
     if (currentScreen == Route.LogIn)
@@ -42,6 +44,13 @@ fun PhotoQuestBottomBar(
             onClick = goToLeaderboard,
             icon = { Icon(Icons.Default.Leaderboard, contentDescription = "Leaderboard") },
             label = { Text("Leaderboard") },
+        )
+
+        NavigationBarItem(
+            selected = currentScreen == Route.NewQuest,
+            onClick = goToNewQuest,
+            icon = { Icon(Icons.Default.AddAPhoto, contentDescription = "New quest") },
+            label = { Text("New Quest") },
         )
 
         NavigationBarItem(
@@ -72,6 +81,7 @@ private fun Light() {
                 goToHome = { currentScreen = Route.Home },
                 goToSettings = { currentScreen = Route.Settings },
                 goToLeaderboard = { currentScreen = Route.Leaderboard },
+                goToNewQuest = { currentScreen = Route.NewQuest },
             )
         }
     }
@@ -88,6 +98,7 @@ private fun Dark() {
                 goToHome = { currentScreen = Route.Home },
                 goToSettings = { currentScreen = Route.Settings },
                 goToLeaderboard = { currentScreen = Route.Leaderboard },
+                goToNewQuest = { currentScreen = Route.NewQuest },
             )
         }
     }

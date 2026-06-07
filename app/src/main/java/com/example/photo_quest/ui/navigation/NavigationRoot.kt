@@ -15,6 +15,7 @@ import com.example.photo_quest.ui.screens.HomeScreen
 import com.example.photo_quest.ui.screens.LeaderboardScreen
 import com.example.photo_quest.ui.screens.SettingsScreen
 import com.example.photo_quest.ui.screens.auth.LogInScreen
+import com.example.photo_quest.ui.screens.auth.NewQuestScreen
 import com.example.photo_quest.ui.viewmodels.HomeScreenViewModel
 import com.example.photo_quest.ui.viewmodels.SettingsScreenViewModel
 import com.example.photo_quest.ui.viewmodels.auth.LogInScreenViewModel
@@ -33,7 +34,8 @@ fun NavigationRoot(
                 currentScreen = backStack.last(),
                 goToHome = { backStack.add(Route.Home) },
                 goToSettings = { backStack.add(Route.Settings) },
-                goToLeaderboard = { backStack.add(Route.Leaderboard) }
+                goToLeaderboard = { backStack.add(Route.Leaderboard) },
+                goToNewQuest = { backStack.add(Route.NewQuest) }
             )
         },
         modifier = modifier,
@@ -88,6 +90,15 @@ fun NavigationRoot(
                         NavEntry(key) {
 //                            val viewModel = hiltViewModel<LeaderboardScreenViewModel>()
                             LeaderboardScreen(
+//                                viewModel = viewModel
+                            )
+                        }
+                    }
+
+                    is Route.NewQuest -> {
+                        NavEntry(key) {
+//                            val viewModel = hiltViewModel<LeaderboardScreenViewModel>()
+                            NewQuestScreen(
 //                                viewModel = viewModel
                             )
                         }
