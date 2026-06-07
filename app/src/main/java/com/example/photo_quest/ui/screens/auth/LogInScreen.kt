@@ -57,9 +57,6 @@ fun LogInScreen(
 
             if (it.emailVerified) {
                 goToHome()
-//                viewModel.uiState = viewModel.uiState.copy(
-//                    loading = false
-//                )
             } else {
                 viewModel.uiState = viewModel.uiState.copy(
                     userEmailUnverified = true
