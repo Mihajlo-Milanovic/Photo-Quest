@@ -33,11 +33,26 @@ fun NavigationRoot(
             PhotoQuestBottomBar(
                 modifier = Modifier,
                 currentScreen = backStack.last(),
-                goToHome = { backStack.add(Route.Home) },
-                goToSettings = { backStack.add(Route.Settings) },
-                goToLeaderboard = { backStack.add(Route.Leaderboard) },
-                goToNewQuest = { backStack.add(Route.NewQuest) },
-                goToSearch = { backStack.add(Route.Search) },
+                goToHome = {
+//                    backStack.remove(Route.Home)
+                    backStack.add(Route.Home)
+                },
+                goToSettings = {
+//                    backStack.remove(Route.Settings)
+                    backStack.add(Route.Settings)
+                },
+                goToLeaderboard = {
+//                    backStack.remove(Route.Leaderboard)
+                    backStack.add(Route.Leaderboard)
+                },
+                goToNewQuest = {
+//                    backStack.remove(Route.NewQuest)
+                    backStack.add(Route.NewQuest)
+                },
+                goToSearch = {
+//                    backStack.remove(Route.Search)
+                    backStack.add(Route.Search)
+                },
             )
         },
         modifier = modifier,
