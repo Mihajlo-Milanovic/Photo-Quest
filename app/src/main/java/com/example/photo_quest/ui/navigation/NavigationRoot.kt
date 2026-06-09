@@ -18,6 +18,7 @@ import com.example.photo_quest.ui.screens.SearchScreen
 import com.example.photo_quest.ui.screens.SettingsScreen
 import com.example.photo_quest.ui.screens.auth.LogInScreen
 import com.example.photo_quest.ui.viewmodels.HomeScreenViewModel
+import com.example.photo_quest.ui.viewmodels.NewQuestScreenViewModel
 import com.example.photo_quest.ui.viewmodels.SettingsScreenViewModel
 import com.example.photo_quest.ui.viewmodels.auth.LogInScreenViewModel
 
@@ -114,9 +115,9 @@ fun NavigationRoot(
 
                     is Route.NewQuest -> {
                         NavEntry(key) {
-//                            val viewModel = hiltViewModel<LeaderboardScreenViewModel>()
+                            val viewModel = hiltViewModel<NewQuestScreenViewModel>()
                             NewQuestScreen(
-//                                viewModel = viewModel
+                                viewModel = viewModel
                             )
                         }
                     }

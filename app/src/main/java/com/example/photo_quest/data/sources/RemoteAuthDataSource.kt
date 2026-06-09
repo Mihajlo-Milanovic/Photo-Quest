@@ -3,11 +3,10 @@ package com.example.photo_quest.data.sources
 import android.util.Log
 import com.google.firebase.Firebase
 import com.google.firebase.auth.AuthResult
-import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -16,20 +15,22 @@ import javax.inject.Singleton
 @Singleton
 class RemoteAuthDataSource @Inject constructor() {
 
-    private val _user = MutableStateFlow(Firebase.auth.currentUser)
-    val user: StateFlow<FirebaseUser?> = _user.asStateFlow()
+    private val auth: FirebaseAuth = Firebase.auth
+    private val _user = MutableStateFlow(auth.currentUser)
+    val user = _user.asStateFlow()
 
     init {
-        Firebase.auth.addAuthStateListener {
+        auth.useEmulator("localhost", 9099)
+        auth.addAuthStateListener {
             _user.value = it.currentUser
         }
     }
 
     suspend fun reloadUser() {
-        Firebase.auth.currentUser?.reload()?.await()
+        auth.currentUser?.reload()?.await()
         _user.value = null
-        _user.value = Firebase.auth.currentUser
-        Log.d("AUTH::USER_RELOAD", Firebase.auth.currentUser.toString())
+        _user.value = auth.currentUser
+        Log.d("AUTH::USER_RELOAD", auth.currentUser.toString())
     }
 
 //    val user = callbackFlow {
@@ -51,24 +52,24 @@ class RemoteAuthDataSource @Inject constructor() {
 //            trySend(auth.currentUser)
 //        }
 //
-//        Firebase.auth.addAuthStateListener(listener)
+//        auth.addAuthStateListener(listener)
 //
 //        awaitClose {
-//            Firebase.auth.removeAuthStateListener(listener)
+//            auth.removeAuthStateListener(listener)
 //        }
 //    }
 
     suspend fun logIn(email: String, password: String): String =
         try {
-            Firebase.auth.signOut()
-            Firebase.auth.signInWithEmailAndPassword(email, password).await().user?.let {
+            auth.signOut()
+            auth.signInWithEmailAndPassword(email, password).await().user?.let {
                 return if (it.isEmailVerified) {
                     Log.d("AUTH::LOG_IN", "signInWithEmail:success")
                     "Log in successful"
                 }
                 else{
                     Log.d("AUTH::LOG_IN", "signInWithEmail:failure \t E-mail not verified")
-                    Firebase.auth.signOut()
+                    auth.signOut()
                     "E-mail not verified"
                 }
             }
@@ -81,7 +82,7 @@ class RemoteAuthDataSource @Inject constructor() {
     suspend fun signUp(email: String, password: String): AuthResult? {
         var result: AuthResult? = null
         try {
-            result = Firebase.auth.createUserWithEmailAndPassword(email, password).await()
+            result = auth.createUserWithEmailAndPassword(email, password).await()
             Log.d("AUTH::SIGN_UP", "createUserWithEmail:success")
         } catch (ex: Exception) {
             Log.e("AUTH::SIGN_UP", "createUserWithEmail:failure", ex)
@@ -90,14 +91,14 @@ class RemoteAuthDataSource @Inject constructor() {
     }
 
     fun logOut() = try {
-        Firebase.auth.signOut()
+        auth.signOut()
         Log.d("AUTH::LOGOUT", "User signed out.")
     } catch (ex: Exception) {
         Log.e("AUTH::LOGOUT", "Error signing out", ex)
     }
 
     suspend fun updateUser(profileUpdates: UserProfileChangeRequest): Boolean = try {
-        Firebase.auth.currentUser?.let {
+        auth.currentUser?.let {
             it.updateProfile(profileUpdates).await()
             Log.d("AUTH::USER_UPDATE", "User profile updated.")
             reloadUser()
@@ -110,7 +111,7 @@ class RemoteAuthDataSource @Inject constructor() {
     }
 
     suspend fun changeEmail(email: String): Boolean = try {
-        Firebase.auth.currentUser?.let{
+        auth.currentUser?.let{
             it.verifyBeforeUpdateEmail(email).await()
             Log.d("AUTH::E-MAIL_CHANGE", "User email address updated.")
             reloadUser()
@@ -123,8 +124,8 @@ class RemoteAuthDataSource @Inject constructor() {
     }
 
     suspend fun sendPasswordResetEmail(email: String): Boolean = try {
-        Firebase.auth.useAppLanguage()
-        Firebase.auth.sendPasswordResetEmail(email).await()
+        auth.useAppLanguage()
+        auth.sendPasswordResetEmail(email).await()
         Log.d("AUTH::RESET_E-MAIL", "Password reset e-mail sent.")
         return true
     } catch (ex: Exception) {
@@ -133,8 +134,8 @@ class RemoteAuthDataSource @Inject constructor() {
     }
 
     suspend fun sendVerificationEmail(): Boolean = try {
-        Firebase.auth.useAppLanguage()
-        Firebase.auth.currentUser?.let {
+        auth.useAppLanguage()
+        auth.currentUser?.let {
             it.sendEmailVerification().await()
             Log.d("AUTH::VERIFICATION_EMAIL", "Verification e-mail sent to ${it.email}")
             return true
