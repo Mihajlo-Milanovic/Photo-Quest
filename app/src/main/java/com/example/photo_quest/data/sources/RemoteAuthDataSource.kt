@@ -18,6 +18,7 @@ class RemoteAuthDataSource @Inject constructor() {
     private val auth: FirebaseAuth = Firebase.auth
     private val _user = MutableStateFlow(auth.currentUser)
     val user = _user.asStateFlow()
+    fun currentUser() = user.value
 
     init {
         auth.useEmulator("localhost", 9099)

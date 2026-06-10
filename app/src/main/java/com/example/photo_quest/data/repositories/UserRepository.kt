@@ -1,6 +1,5 @@
 package com.example.photo_quest.data.repositories
 
-import android.net.Uri
 import android.util.Log
 import com.example.photo_quest.data.models.User
 import com.example.photo_quest.data.sources.RemoteAuthDataSource
@@ -15,17 +14,13 @@ class UserRepository @Inject constructor(
 
     val user = remoteAuthDataSource.user.map { firebaseUser ->
         firebaseUser?.let {
-             User(
-                name = it.displayName ?: "",
-                email = it.email ?: "",
-                emailVerified = it.isEmailVerified,
-                photoUrl = it.photoUrl ?: Uri.EMPTY,
-                uid = it.uid
-            ).copy()
+             User(firebaseUser).copy()
         }.also {
             Log.d("AUTH::CURRENT_USER", it.toString())
         }
     }
+
+    fun currentUser() = remoteAuthDataSource.currentUser()?.let { User(it) }
 
     suspend fun reloadUser() = remoteAuthDataSource.reloadUser()
 
